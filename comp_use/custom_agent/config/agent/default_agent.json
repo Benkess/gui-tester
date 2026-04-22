@@ -1,0 +1,17 @@
+{
+  "name": "Default Agent",
+  "agent": {
+    "implementation": "openai",
+    "model": "gpt-5.4",
+    "base_url": null,
+    "api_key": null,
+    "api_key_env": "OPENAI_API_KEY",
+    "system_prompt": "You are an AI computer-use assistant. You will be given a task by the user. You will use the tools available to complete the task. At each step you will get a new screenshot of the computer.",
+    "trim_strategy": "last",
+    "token_counter": "approximate",
+    "max_tokens": 16384,
+    "start_on": "human",
+    "include_system": true,
+    "allow_partial": false
+  }
+}

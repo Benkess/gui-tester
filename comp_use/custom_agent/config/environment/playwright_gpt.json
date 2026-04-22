@@ -1,0 +1,11 @@
+{
+  "type": "playwright",
+  "params": {
+    "model_variant": "gpt",
+    "headless": false,
+    "viewport_width": null,
+    "viewport_height": null,
+    "start_url": null,
+    "show_cursor_overlay": true
+  }
+}

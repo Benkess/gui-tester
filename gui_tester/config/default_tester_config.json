@@ -1,0 +1,35 @@
+{
+  "agent": {
+    "model": "gpt-5.4",
+    "base_url": null,
+    "api_key": null,
+    "api_key_env": "OPENAI_API_KEY",
+    "trim_strategy": "last",
+    "token_counter": "approximate",
+    "max_tokens": 16384,
+    "start_on": "human",
+    "include_system": true,
+    "allow_partial": false,
+    "max_tool_calling_iterations": 60,
+    "include_user_prompt_in_image_message": false,
+    "verbose": false
+  },
+  "environment": {
+    "type": "playwright",
+    "params": {
+      "model_variant": "gpt",
+      "headless": false,
+      "viewport_width": null,
+      "viewport_height": null,
+      "start_url": null,
+      "allow_local_files": false,
+      "allow_extensions": false,
+      "show_cursor_overlay": true,
+      "record_video": false
+    }
+  },
+  "prompt": {
+    "system_prompt_path": "../prompts/gui_tester_system_prompt.txt"
+  },
+  "output": {}
+}
