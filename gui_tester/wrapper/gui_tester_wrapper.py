@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 from copy import deepcopy
@@ -192,7 +193,6 @@ def launch_gui_tester_subagent(
     Redirects stdout to stderr for the duration of the run so that agent
     progress output does not corrupt the MCP stdio protocol pipe.
     """
-    import contextlib
     with contextlib.redirect_stdout(sys.stderr):
         result = run_gui_tester_session(
             url=url,
