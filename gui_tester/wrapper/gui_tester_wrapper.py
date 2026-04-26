@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 from copy import deepcopy
@@ -187,12 +188,17 @@ def launch_gui_tester_subagent(
     test_instructions: str,
     report_dir: str,
 ) -> str:
-    """Parent-facing launcher that returns only the main report path."""
-    result = run_gui_tester_session(
-        url=url,
-        gui_description=gui_description,
-        test_instructions=test_instructions,
-        report_dir=report_dir,
-        config_path=None,
-    )
+    """Parent-facing launcher that returns only the main report path.
+
+    Redirects stdout to stderr for the duration of the run so that agent
+    progress output does not corrupt the MCP stdio protocol pipe.
+    """
+    with contextlib.redirect_stdout(sys.stderr):
+        result = run_gui_tester_session(
+            url=url,
+            gui_description=gui_description,
+            test_instructions=test_instructions,
+            report_dir=report_dir,
+            config_path=None,
+        )
     return result["report_path"]
