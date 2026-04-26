@@ -145,6 +145,8 @@ Tool inputs:
 Tool output:
 - `report_path`
 
+> **Note:** The MCP server processes calls sequentially. If a coding agent issues two `launch_gui_tester` calls simultaneously, the second will wait in a queue and start automatically once the first completes. Parallel execution is not currently supported.
+
 Run the MCP server after installation:
 
 ```powershell
