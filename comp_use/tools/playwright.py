@@ -1,4 +1,4 @@
-# playwrite-based Computer Use Example Tool
+# Playwright-based Computer Use Example Tool
 # Actions supported: click, double_click, scroll, type, wait, keypress, drag, move, screenshot
 
 

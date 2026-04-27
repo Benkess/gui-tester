@@ -1,5 +1,5 @@
 # Computer Use Agent Launch
-# Load a configs specifying the custom computer use agent and environment, then launch the agent.
+# Load configs specifying the custom computer use agent and environment, then launch the agent.
 
 # Imports
 import json
@@ -43,10 +43,17 @@ class ComputerUseAgentLoader:
     def load_agent(self, env: ComputerUseEnv) -> ComputerUseAgent:
         # Load the agent configuration from the specified path
         with open(self.config_path, 'r') as f:
-            agent_config = json.load(f)
+            raw_agent_config = json.load(f)
+
+        # The config file may have the shape {"name": "...", "agent": {...}}.
+        # ComputerUseAgent only accepts the inner "agent" dict.
+        agent_config = raw_agent_config.get("agent", raw_agent_config)
+
+        # "implementation" is a config-file convention, not a ComputerUseAgent parameter.
+        agent_config.pop("implementation", None)
         
         # Initialize the ComputerUseAgent with the loaded configuration and provided environment
-        return ComputerUseAgent(env=env, **agent_config)
+        return ComputerUseAgent(computer_use_env=env, **agent_config)
     
 def launch_computer_use_agent(env_config_path: str, agent_config_path: str):
     # Load the environment

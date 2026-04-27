@@ -1,1 +1,1 @@
-"""Bundled computer-use support code copied from the workshop demo."""
+"""Bundled computer-use support code for gui_tester."""
