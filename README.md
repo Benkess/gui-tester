@@ -1,21 +1,40 @@
-# gui_tester
+# GUI-Tester
 
-`gui_tester` is a self-contained GUI testing agent package. It includes:
-- a direct CLI for human use
+GUI-tester is a framework for automating web-GUI testing through natural language prompts using a GUI testing AI agent. It is intended as a tool to allow AI coding agents to iteratively test the GUIs they build. It can also be used directly by humans in the CLI. 
+
+It provides:
 - a local stdio MCP server for coding-assistant integrations
-- a bundled copy of the `comp_use` support code it depends on
+- a direct CLI for manually running the tester
+- bundled `comp_use` support code used by the agent to interact with GUIs.
 
-> **Note:** Currently only Windows is supported. On Linux the computer-use agent can have issues creating the browser.
 
-## Repository Layout
+> **Notes:** 
+> - Currently only web-GUIs are supported.
+> - Currently only Windows is supported. On Linux the computer-use agent can have issues creating the browser with Playwright.
 
-- `gui_tester/` contains the package code, prompts, config, wrapper, custom tools, CLI, and MCP server
-- `comp_use/` contains the bundled computer-use support code
-- `pyproject.toml` defines the installable package and console entrypoints
+## Getting Started
+
+1) API Key Setup:
+
+    - The default config uses `gpt-5.4` (as the computer-use agent), which expects `OPENAI_API_KEY`. To test with the default settings, an OpenAI API key is required. For help creating an OpenAI API key see the [OpenAI Docs](https://developers.openai.com/api/docs/quickstart#create-and-export-an-api-key).
+    - Other model configs may use different API key names. 
+
+    > **Note:** Advanced users may override the computer-use model and API key name via the CLI, but this feature is not yet supported for the MCP.
+
+2) Package Setup:
+
+    - Complete all the steps under [Package Setup](/README.md#package-setup)
+
+3) Choose the path that fits your workflow:
+
+    | | Best for |
+    |---|---|
+    | **[GUI-Tester CLI](/README.md#gui-tester-cli)** | Human driven testing |
+    | **[GUI-Tester MCP](/README.md#gui-tester-mcp)** | Coding agents (Claude Code, Codex) |
 
 ## Package Setup
 
-For MCP use, it is recommended to clone this repo separately from the project you want to test. The MCP host should point at this package's virtual environment and install.
+For MCP use, clone this repo separately from the project you want to test. The MCP host should point at this package's virtual environment and install.
 
 ### Environment Setup
 
@@ -45,14 +64,9 @@ source .venv/bin/activate
 .venv\Scripts\activate
 ```
 
-Upgrade pip:
+Upgrade packaging tools:
 
 ```bash
-python -m pip install --upgrade pip
-```
-
-```bash
-# Also upgrade these for TensorFlow or PyTorch
 python -m pip install --upgrade pip wheel setuptools
 ```
 
@@ -64,29 +78,49 @@ From this directory:
 pip install -e .
 ```
 
+Install the [Playwright](https://playwright.dev/) browser used by the tester:
+
+```powershell
+playwright install chromium
+```
+
+<details>
+<summary>Optional dotenv support</summary>
+
 Optional local development convenience:
 
 ```powershell
 pip install -e .[dev]
 ```
 
-The optional `dev` extra installs `python-dotenv`, which the bundled computer-use agent can use as a local `.env` fallback.
+The optional `dev` extra installs `python-dotenv`. Normal CLI and MCP usage should pass API keys through the shell or MCP host environment. Some bundled compatibility paths can use a local `.env` file when `python-dotenv` is available, but `.env` loading is not the primary package interface.
+</details>
 
-> **Note:** Normal install currently still requires `python-dotenv`. That compatibility gap is planned to be removed in a future update.
+---
 
-## Direct CLI
+## GUI-Tester CLI
+
+The GUI-Tester command-line interface is intended for Human use. It allows you to directly run the GUI tester agent and view its report and notes. To understand the output see the [output section](/README.md#output).
+
+### API Key
 
 Before CLI use, export your API key.
 
-The default config uses `gpt-5.4`, which expects `OPENAI_API_KEY`. Other models may use different key names. Example:
+The default config uses `gpt-5.4`, which expects `OPENAI_API_KEY`. Other models may use different API key names. 
+
+Example API key export (Windows Powershell):
 
 ```powershell
 $env:OPENAI_API_KEY="sk-your-key"
 ```
 
+Example API key export (Linux):
+
 ```bash
 export OPENAI_API_KEY=sk-your-key
 ```
+
+### CLI Use
 
 Example CLI usage:
 
@@ -130,46 +164,36 @@ Run contents:
 
 The final report links to notes, and notes link to screenshots when attached.
 
-## MCP Server
+--- 
 
-The package includes a local stdio MCP server with:
-- server name: `gui_tester`
-- tool name: `launch_gui_tester`
+## GUI-Tester MCP
 
-Tool inputs:
-- `url`
-- `gui_description`
-- `test_instructions`
-- `report_dir`
+A Model Context Protocol (MCP) server that provides web-GUI testing subagent using [Playwright](https://playwright.dev/). This server enables coding agents to test out the GUIs they build using GUI-Tester as a subagent.
 
-Tool output:
-- `report_path`
+### Setup
 
-> **Note:** The MCP server processes calls sequentially. If a coding agent issues two `launch_gui_tester` calls simultaneously, the second will wait in a queue and start automatically once the first completes. Parallel execution is not currently supported.
+Standard config works for most of the tools:
 
-Run the MCP server after installation:
-
-```powershell
-gui-tester-mcp
+```json
+{
+  "mcpServers": {
+    "gui_tester": {
+      "type": "stdio",
+      "command": "<path-to-venv>/Scripts/python.exe",
+      "args": [
+        "-m",
+        "gui_tester.mcp"
+      ],
+      "env": {
+        "YOUR_API_KEY": "sk-your-key"
+      }
+    }
+  }
+}
 ```
 
-Module form also works:
-
-```powershell
-python -m gui_tester.mcp
-```
-
-## Claude Code Setup
-
-This section is included as one example of how to connect the MCP server from a host tool. The same general pattern applies to other MCP-capable editors and agents.
-
-Example using the installed entrypoint inside the repo virtual environment:
-
-**CLI only** (default local scope, goes into `~/.claude.json`):
-
-```powershell
-claude mcp add gui_tester --transport stdio --env YOUR_API_KEY=sk-your-key -- <path-to-venv>\Scripts\python.exe -m gui_tester.mcp
-```
+<details>
+<summary>Claude Code Setup</summary>
 
 **CLI + VS Code extension** (project scope, creates `.mcp.json` in the project root):
 
@@ -177,18 +201,56 @@ claude mcp add gui_tester --transport stdio --env YOUR_API_KEY=sk-your-key -- <p
 claude mcp add gui_tester --scope project --transport stdio --env YOUR_API_KEY=sk-your-key -- <path-to-venv>\Scripts\python.exe -m gui_tester.mcp
 ```
 
-> **Note:** Add `.mcp.json` to `.gitignore`.
+> **Note:** Add `.mcp.json` to `.gitignore` in the project being tested.
 
 Replace `YOUR_API_KEY` with whatever environment variable name your model config expects, such as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`.
 
-Then verify the connection:
+**Then verify the connection:**
 
 In Claude Code, use `/mcp` and ensure `gui_tester` shows `Connected`.
 
-Notes:
+**Notes:**
 - After you set up or change the MCP config, start a fresh Claude session and reconnect to the MCP before retesting tool availability.
 
-Example prompt for Claude Code:
+</details>
+
+<details>
+<summary>Codex Setup</summary>
+
+The Codex VS Code extension and CLI share the same `~/.codex/config.toml` file. Configure it once and both tools use it.
+
+**VS Code Extension**
+
+In the Codex sidebar, select the gear icon -> Codex settings -> **MCP Servers** -> **+ Add server** -> **STDIO**, then fill in:
+
+- **Name:** `gui_tester`
+- **Command to launch:** `<path-to-venv>\Scripts\python.exe`
+- **Arguments:** `-m` and `gui_tester.mcp` (as separate entries)
+- **Environment variables:** add your key name (e.g. `OPENAI_API_KEY`) and value
+
+Save and restart the extension.
+
+**CLI**
+
+```powershell
+codex mcp add gui_tester --env YOUR_API_KEY=sk-your-key -- <path-to-venv>\Scripts\python.exe -m gui_tester.mcp
+```
+
+Replace `YOUR_API_KEY` with whatever environment variable name your model config expects, such as `OPENAI_API_KEY`.
+
+**Verify**
+
+Ask Codex in chat: *"Do you have access to a `launch_gui_tester` tool?"*
+
+</details>
+
+### How it works
+
+Your coding agent can now have a subagent test out the GUI. This is useful to catch visual issues that would be missed by just reviewing the code. 
+
+Ask you coding agent to use the `launch_gui_tester` MCP tool to test out a GUI.
+
+Example prompts:
 
 ```text
 Call the launch_gui_tester MCP tool with these arguments:
@@ -199,35 +261,24 @@ test_instructions = Check all three pages for functionality and visual layout co
 report_dir = C:\path\to\your\context\reports
 ```
 
-## Codex Setup
+```text
+I had another coding agent create the personal website template in `guis/personal_webpage`. I gave it the spec.md included in that directory. 
 
-The Codex VS Code extension and CLI share the same `~/.codex/config.toml` file. Configure it once and both tools use it.
+Can you use the launch_gui_tester tool to test this GUI? 
 
-### VS Code Extension
+You can use report_dir: C:\path\to\your\context\reports 
 
-In the Codex sidebar, select the gear icon → Codex settings → **MCP Servers** → **+ Add server** → **STDIO**, then fill in:
+If the GUI tester reports issues fix them.
 
-- **Name:** `gui_tester`
-- **Command to launch:** `<path-to-venv>\Scripts\python.exe`
-- **Arguments:** `-m` and `gui_tester.mcp` (as separate entries)
-- **Environment variables:** add your key name (e.g. `OPENAI_API_KEY`) and value
-
-Save and restart the extension.
-
-### CLI
-
-```powershell
-codex mcp add gui_tester --env YOUR_API_KEY=sk-your-key -- <path-to-venv>\Scripts\python.exe -m gui_tester.mcp
+Use the GUI tester tool to test once you make changes. When you are done let me know if any issues have been caught.
 ```
 
-Replace `YOUR_API_KEY` with whatever environment variable name your model config expects, such as `OPENAI_API_KEY`.
+[Full MCP documentation](/docs/gui_tester_mcp.md)
 
-### Verify
-
-Ask Codex in chat: *"Do you have access to a `launch_gui_tester` tool?"*
+---
 
 ## Development Docs
 
-Development-focused notes, compatibility details, and planning material live in `docs/`:
+Development-focused notes, compatibility details, and roadmap material live in `docs/`:
 - `docs/dev.md`
-- `docs/planning.md`
+- `docs/roadmap.md`
