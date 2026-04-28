@@ -47,14 +47,9 @@ source .venv/bin/activate
 .venv\Scripts\activate
 ```
 
-Upgrade pip:
+Upgrade packaging tools:
 
 ```bash
-python -m pip install --upgrade pip
-```
-
-```bash
-# Also upgrade these for TensorFlow or PyTorch
 python -m pip install --upgrade pip wheel setuptools
 ```
 
@@ -66,15 +61,19 @@ From this directory:
 pip install -e .
 ```
 
+Install the Playwright browser used by the tester:
+
+```powershell
+playwright install chromium
+```
+
 Optional local development convenience:
 
 ```powershell
 pip install -e .[dev]
 ```
 
-The optional `dev` extra installs `python-dotenv`, which the bundled computer-use agent can use as a local `.env` fallback.
-
-> **Note:** Normal install currently still requires `python-dotenv`. That compatibility gap is planned to be removed in a future update.
+The optional `dev` extra installs `python-dotenv`. Normal CLI and MCP usage should pass API keys through the shell or MCP host environment. Some bundled compatibility paths can use a local `.env` file when `python-dotenv` is available, but `.env` loading is not the primary package interface.
 
 ## Secrets and Config
 
@@ -138,5 +137,5 @@ report_dir = C:\path\to\your\context\reports
 ## Maintainer Notes
 
 - The main `README.md` should stay user-facing.
-- Development notes, compatibility caveats, and planning material should live under `docs/`.
+- Development notes, compatibility caveats, and roadmap material should live under `docs/`.
 - The current package intentionally preserves some compatibility behavior from the bundled computer-use agent while the public interface is stabilized.
